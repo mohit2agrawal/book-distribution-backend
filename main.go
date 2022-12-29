@@ -63,6 +63,21 @@ func addUser(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newUser)
 }
 
+func deleteUser(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
+
+	err = db.DeleteUser(int(id))
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": err})
+	} else {
+		c.Status(http.StatusAccepted)
+	}
+}
+
 func getBooks(c *gin.Context) {
 	books, err := db.AllBooks()
 	if err != nil {
@@ -105,6 +120,21 @@ func addBook(c *gin.Context) {
 	fmt.Println("inserted book", newBook)
 
 	c.IndentedJSON(http.StatusCreated, newBook)
+}
+
+func deleteBook(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
+
+	err = db.DeleteBook(int(id))
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": err})
+	} else {
+		c.Status(http.StatusAccepted)
+	}
 }
 
 func getTransactions(c *gin.Context) {
@@ -213,10 +243,12 @@ func main() {
 
 	r.GET("/users", getUsers)
 	r.GET("/users/:id", getUser)
+	r.DELETE("/users/:id", deleteUser)
 	r.POST("/users", addUser)
 
 	r.GET("/books", getBooks)
 	r.GET("/books/:id", getBook)
+	r.DELETE("/books/:id", deleteBook)
 	r.POST("/books", addBook)
 
 	r.GET("/transactions", getTransactions)

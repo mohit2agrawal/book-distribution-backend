@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -103,6 +104,17 @@ func GetUser(id int) (User, error) {
 	return user, err
 }
 
+func DeleteUser(id int) error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(userBucket)
+		return b.Delete(itob(id))
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return err
+}
+
 func CreateBook(book *Book) (int, error) {
 	var id int
 	err := db.Update(func(tx *bolt.Tx) error {
@@ -150,6 +162,17 @@ func GetBook(id int) (Book, error) {
 		return err
 	})
 	return book, err
+}
+
+func DeleteBook(id int) error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bookBucket)
+		return b.Delete(itob(id))
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return err
 }
 
 func CreateTransaction(trasact *Transaction) (int, error) {
