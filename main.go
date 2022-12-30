@@ -63,6 +63,52 @@ func addUser(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newUser)
 }
 
+func updateUser(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
+
+	_, err = db.GetUser(int(id))
+	if err != nil {
+		fmt.Println(err)
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not found", "error": err})
+		return
+	}
+
+	var newUser db.User
+	if err := c.BindJSON(&newUser); err != nil {
+		fmt.Println(err)
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid Body", "error": err})
+		return
+	}
+
+	updatedUser, err := db.UpdateUser(int(id), newUser)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "User not updated", "error": err})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, updatedUser)
+}
+
+func deleteUser(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
+
+	err = db.DeleteUser(int(id))
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": err})
+	} else {
+		c.Status(http.StatusAccepted)
+	}
+}
+
 func getBooks(c *gin.Context) {
 	books, err := db.AllBooks()
 	if err != nil {
@@ -75,13 +121,13 @@ func getBooks(c *gin.Context) {
 func getBook(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID", "error": err})
 		return
 	}
 	book, err := db.GetBook(int(id))
 
 	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found"})
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found", "error": err})
 		return
 	}
 
@@ -105,6 +151,52 @@ func addBook(c *gin.Context) {
 	fmt.Println("inserted book", newBook)
 
 	c.IndentedJSON(http.StatusCreated, newBook)
+}
+
+func updateBook(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
+
+	_, err = db.GetBook(int(id))
+	if err != nil {
+		fmt.Println(err)
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found", "error": err})
+		return
+	}
+
+	var newBook db.Book
+	if err := c.BindJSON(&newBook); err != nil {
+		fmt.Println(err)
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid Body", "error": err})
+		return
+	}
+
+	updatedBook, err := db.UpdateBook(int(id), newBook)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Book not updated", "error": err})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, updatedBook)
+}
+
+func deleteBook(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid ID"})
+		return
+	}
+
+	err = db.DeleteBook(int(id))
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": err})
+	} else {
+		c.Status(http.StatusAccepted)
+	}
 }
 
 func getTransactions(c *gin.Context) {
@@ -213,10 +305,14 @@ func main() {
 
 	r.GET("/users", getUsers)
 	r.GET("/users/:id", getUser)
+	r.PATCH("/users/:id", updateUser)
+	r.DELETE("/users/:id", deleteUser)
 	r.POST("/users", addUser)
 
 	r.GET("/books", getBooks)
 	r.GET("/books/:id", getBook)
+	r.PATCH("/books/:id", updateBook)
+	r.DELETE("/books/:id", deleteBook)
 	r.POST("/books", addBook)
 
 	r.GET("/transactions", getTransactions)
