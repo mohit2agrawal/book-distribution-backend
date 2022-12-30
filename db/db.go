@@ -104,6 +104,24 @@ func GetUser(id int) (User, error) {
 	return user, err
 }
 
+func UpdateUser(id int, incomingUser User) (User, error) {
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(userBucket)
+		key := itob(id)
+
+		incomingUser.ID = id
+		fmt.Println("updating user...", incomingUser)
+		val, _ := json.Marshal(incomingUser)
+
+		return b.Put(key, val)
+	})
+	if err != nil {
+		log.Fatal(err)
+		return incomingUser, err
+	}
+	return incomingUser, nil
+}
+
 func DeleteUser(id int) error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(userBucket)
@@ -162,6 +180,24 @@ func GetBook(id int) (Book, error) {
 		return err
 	})
 	return book, err
+}
+
+func UpdateBook(id int, incomingBook Book) (Book, error) {
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bookBucket)
+		key := itob(id)
+
+		incomingBook.ID = id
+		fmt.Println("updatting book...", incomingBook)
+		val, _ := json.Marshal(incomingBook)
+
+		return b.Put(key, val)
+	})
+	if err != nil {
+		log.Fatal(err)
+		return incomingBook, err
+	}
+	return incomingBook, nil
 }
 
 func DeleteBook(id int) error {
